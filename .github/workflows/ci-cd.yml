@@ -60,16 +60,24 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install -r requirements.txt
-      - run: playwright install --with-deps chromium
-      - run: |
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install chromium
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64 || true
+      - name: Start application server
+        run: |
           uvicorn app.main:app --host 0.0.0.0 --port 8000 &
-          sleep 5
+          sleep 10
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/jwt_auth
           SECRET_KEY: test-secret-key
-      - run: |
-          for i in {1..30}; do curl -s http://localhost:8000/api/health && break; sleep 2; done
-      - run: pytest tests/test_e2e.py -v
+      - name: Wait for server
+        run: |
+          for i in {1..30}; do curl -s http://localhost:8000/api/health && break; echo "Waiting..."; sleep 2; done
+      - name: Run E2E tests
+        run: pytest tests/test_e2e.py -v
         env:
           BASE_URL: http://localhost:8000
 
