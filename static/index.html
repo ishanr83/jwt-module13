@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Authentication App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; max-width: 400px; width: 90%; }
+        h1 { color: #333; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 30px; }
+        .nav-links { display: flex; gap: 20px; justify-content: center; }
+        .nav-links a { display: inline-block; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: 600; transition: all 0.3s ease; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a6fd6; transform: translateY(-2px); }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; transform: translateY(-2px); }
+        #user-info { display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 5px; }
+        #logout-btn { margin-top: 15px; padding: 10px 25px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #logout-btn:hover { background: #c82333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JWT Authentication</h1>
+        <p>Secure authentication with JSON Web Tokens</p>
+        <div id="auth-buttons" class="nav-links">
+            <a href="/register" class="btn-primary">Register</a>
+            <a href="/login" class="btn-secondary">Login</a>
+        </div>
+        <div id="user-info">
+            <p>Welcome, <span id="user-email"></span>!</p>
+            <p>You are logged in.</p>
+            <button id="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('jwt_token');
+            const userEmail = localStorage.getItem('user_email');
+            if (token && userEmail) {
+                document.getElementById('auth-buttons').style.display = 'none';
+                document.getElementById('user-info').style.display = 'block';
+                document.getElementById('user-email').textContent = userEmail;
+            }
+        });
+        function logout() {
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('user_email');
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>

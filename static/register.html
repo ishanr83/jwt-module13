@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - JWT Auth</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 400px; }
+        h1 { text-align: center; color: #333; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #555; font-weight: 500; }
+        input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 16px; transition: border-color 0.3s ease; }
+        input:focus { outline: none; border-color: #667eea; }
+        input.error { border-color: #dc3545; }
+        input.valid { border-color: #28a745; }
+        .error-message { color: #dc3545; font-size: 14px; margin-top: 5px; display: none; }
+        .error-message.show { display: block; }
+        button { width: 100%; padding: 14px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.3s ease; }
+        button:hover { background: #5a6fd6; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .success-message { background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px; display: none; text-align: center; }
+        .success-message.show { display: block; }
+        .server-error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; display: none; text-align: center; }
+        .server-error.show { display: block; }
+        .link { text-align: center; margin-top: 20px; }
+        .link a { color: #667eea; text-decoration: none; }
+        .link a:hover { text-decoration: underline; }
+        .password-requirements { font-size: 12px; color: #888; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Create Account</h1>
+        <div id="success-message" class="success-message">Registration successful! Redirecting to home...</div>
+        <div id="server-error" class="server-error"></div>
+        <form id="register-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                <div id="username-error" class="error-message">Username must be at least 2 characters</div>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                <div id="email-error" class="error-message">Please enter a valid email address</div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                <div class="password-requirements">Minimum 8 characters</div>
+                <div id="password-error" class="error-message">Password must be at least 8 characters</div>
+            </div>
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+                <div id="confirm-password-error" class="error-message">Passwords do not match</div>
+            </div>
+            <button type="submit" id="submit-btn">Register</button>
+        </form>
+        <div class="link">Already have an account? <a href="/login">Login here</a></div>
+    </div>
+    <script>
+        const form = document.getElementById('register-form');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const submitBtn = document.getElementById('submit-btn');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        function validateUsername() {
+            const value = usernameInput.value.trim();
+            const errorEl = document.getElementById('username-error');
+            if (value.length < 2) { usernameInput.classList.add('error'); usernameInput.classList.remove('valid'); errorEl.classList.add('show'); return false; }
+            usernameInput.classList.remove('error'); usernameInput.classList.add('valid'); errorEl.classList.remove('show'); return true;
+        }
+        function validateEmail() {
+            const value = emailInput.value.trim();
+            const errorEl = document.getElementById('email-error');
+            if (!emailRegex.test(value)) { emailInput.classList.add('error'); emailInput.classList.remove('valid'); errorEl.classList.add('show'); return false; }
+            emailInput.classList.remove('error'); emailInput.classList.add('valid'); errorEl.classList.remove('show'); return true;
+        }
+        function validatePassword() {
+            const value = passwordInput.value;
+            const errorEl = document.getElementById('password-error');
+            if (value.length < 8) { passwordInput.classList.add('error'); passwordInput.classList.remove('valid'); errorEl.classList.add('show'); return false; }
+            passwordInput.classList.remove('error'); passwordInput.classList.add('valid'); errorEl.classList.remove('show'); return true;
+        }
+        function validateConfirmPassword() {
+            const value = confirmPasswordInput.value;
+            const errorEl = document.getElementById('confirm-password-error');
+            if (value !== passwordInput.value || value.length === 0) { confirmPasswordInput.classList.add('error'); confirmPasswordInput.classList.remove('valid'); errorEl.classList.add('show'); return false; }
+            confirmPasswordInput.classList.remove('error'); confirmPasswordInput.classList.add('valid'); errorEl.classList.remove('show'); return true;
+        }
+
+        usernameInput.addEventListener('input', validateUsername);
+        emailInput.addEventListener('input', validateEmail);
+        passwordInput.addEventListener('input', () => { validatePassword(); if (confirmPasswordInput.value) validateConfirmPassword(); });
+        confirmPasswordInput.addEventListener('input', validateConfirmPassword);
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const serverError = document.getElementById('server-error');
+            serverError.classList.remove('show');
+            if (!validateUsername() || !validateEmail() || !validatePassword() || !validateConfirmPassword()) return;
+            submitBtn.disabled = true; submitBtn.textContent = 'Registering...';
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: usernameInput.value.trim(), email: emailInput.value.trim(), password: passwordInput.value })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem('jwt_token', data.access_token);
+                    localStorage.setItem('user_email', data.email);
+                    document.getElementById('success-message').classList.add('show');
+                    form.style.display = 'none';
+                    setTimeout(() => { window.location.href = '/'; }, 2000);
+                } else {
+                    serverError.textContent = data.detail || 'Registration failed. Please try again.';
+                    serverError.classList.add('show');
+                    submitBtn.disabled = false; submitBtn.textContent = 'Register';
+                }
+            } catch (error) {
+                serverError.textContent = 'Network error. Please try again.';
+                serverError.classList.add('show');
+                submitBtn.disabled = false; submitBtn.textContent = 'Register';
+            }
+        });
+    </script>
+</body>
+</html>

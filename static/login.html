@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - JWT Auth</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 400px; }
+        h1 { text-align: center; color: #333; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #555; font-weight: 500; }
+        input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 16px; transition: border-color 0.3s ease; }
+        input:focus { outline: none; border-color: #667eea; }
+        input.error { border-color: #dc3545; }
+        .error-message { color: #dc3545; font-size: 14px; margin-top: 5px; display: none; }
+        .error-message.show { display: block; }
+        button { width: 100%; padding: 14px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.3s ease; }
+        button:hover { background: #5a6fd6; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .success-message { background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px; display: none; text-align: center; }
+        .success-message.show { display: block; }
+        .server-error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; display: none; text-align: center; }
+        .server-error.show { display: block; }
+        .link { text-align: center; margin-top: 20px; }
+        .link a { color: #667eea; text-decoration: none; }
+        .link a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome Back</h1>
+        <div id="success-message" class="success-message">Login successful! Redirecting...</div>
+        <div id="server-error" class="server-error"></div>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                <div id="email-error" class="error-message">Please enter a valid email address</div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                <div id="password-error" class="error-message">Password is required</div>
+            </div>
+            <button type="submit" id="submit-btn">Login</button>
+        </form>
+        <div class="link">Don't have an account? <a href="/register">Register here</a></div>
+    </div>
+    <script>
+        const form = document.getElementById('login-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const submitBtn = document.getElementById('submit-btn');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        function validateEmail() {
+            const value = emailInput.value.trim();
+            const errorEl = document.getElementById('email-error');
+            if (!emailRegex.test(value)) { emailInput.classList.add('error'); errorEl.classList.add('show'); return false; }
+            emailInput.classList.remove('error'); errorEl.classList.remove('show'); return true;
+        }
+        function validatePassword() {
+            const value = passwordInput.value;
+            const errorEl = document.getElementById('password-error');
+            if (value.length === 0) { passwordInput.classList.add('error'); errorEl.classList.add('show'); return false; }
+            passwordInput.classList.remove('error'); errorEl.classList.remove('show'); return true;
+        }
+
+        emailInput.addEventListener('input', validateEmail);
+        passwordInput.addEventListener('input', validatePassword);
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const serverError = document.getElementById('server-error');
+            serverError.classList.remove('show');
+            if (!validateEmail() || !validatePassword()) return;
+            submitBtn.disabled = true; submitBtn.textContent = 'Logging in...';
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: emailInput.value.trim(), password: passwordInput.value })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem('jwt_token', data.access_token);
+                    localStorage.setItem('user_email', emailInput.value.trim());
+                    document.getElementById('success-message').classList.add('show');
+                    form.style.display = 'none';
+                    setTimeout(() => { window.location.href = '/'; }, 2000);
+                } else {
+                    serverError.textContent = response.status === 401 ? 'Invalid credentials. Please check your email and password.' : (data.detail || 'Login failed. Please try again.');
+                    serverError.classList.add('show');
+                    submitBtn.disabled = false; submitBtn.textContent = 'Login';
+                }
+            } catch (error) {
+                serverError.textContent = 'Network error. Please try again.';
+                serverError.classList.add('show');
+                submitBtn.disabled = false; submitBtn.textContent = 'Login';
+            }
+        });
+    </script>
+</body>
+</html>
