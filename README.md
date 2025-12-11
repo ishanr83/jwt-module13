@@ -48,4 +48,4 @@ docker-compose up --build
 
 ## Docker Hub
 
-Image: YOUR_DOCKER_USERNAME/jwt-module13:latest
+Image: ishanr83/jwt-module13:latest
